@@ -11,6 +11,10 @@
         add "show result directory" in menubar
     v1.3
         add 'update' function
+    v1.3.1
+        remove 'ARLupdate.py' and combine update function to ARL.py
+    v1.3.2
+        change backup directory
 '''
 
 ''' todo
@@ -617,11 +621,11 @@ def showresult():
     os.startfile(os.getcwd() + '/result')
     
 def About():
-    messagebox.showinfo('정보', '민원분석 시스템 v1.3.1\n\n경상남도청 디지털정책담당관실\n김승원, 내선 2667')
+    messagebox.showinfo('정보', '민원분석 시스템 v1.3.2\n\n경상남도청 디지털정책담당관실\n김승원, 내선 2667')
     
 def Version():
     global version
-    version = '1.3.1'
+    version = '1.3.2'
     server_version = 'https://github.com/SoongFish/GSND_MS/blob/master/version'
     
     try:
@@ -649,27 +653,36 @@ def Version():
             return
             
 def Update():
-    wherenewcode = 'https://github.com/SoongFish/GSND_MS.git'
-    update_flag = 0
-    
-    # backup before update
-    dirname = 'bak_' + version
-    os.makedirs(dirname, mode = 777, exist_ok = True)
-    shutil.move(os.getcwd() + '\ARL.py', os.getcwd() + '/' + dirname)
-    
-    # update
-    dload.git_clone('https://github.com/SoongFish/GSND_MS.git')
-    shutil.move(os.getcwd() + '\GSND_MS\GSND_MS-master\ARL.py', os.getcwd())
-    update_flag = 1
-    
-    if update_flag == 0: # return -> 1 : success, 0 : fail
-        shutil.move(os.getcwd() + 'bak_' + version + '/ARL.py', os.getcwd()) 
-        shutil.rmtree('GSND_MS')
-        messagebox.showerrer('오류', '업데이트를 실패했습니다.\n프로그램을 다시 실행해주세요.')
-    else:
-        shutil.rmtree('GSND_MS')
-        messagebox.showinfo('알림', '업데이트가 완료되었습니다.\n프로그램을 다시 실행해주세요.')
-        mainwindow.quit()
+    try:
+        wherenewcode = 'https://github.com/SoongFish/GSND_MS.git'
+        update_flag = 0
+        
+        # backup before update
+        os.makedirs('bak', mode = 777, exist_ok = True)
+        os.makedirs('bak/' + version, mode = 777, exist_ok = True)
+        shutil.move(os.getcwd() + '\ARL.py', os.getcwd() + '/bak/' + version)
+        
+        #dirname = 'bak_' + version
+        #os.makedirs(dirname, mode = 777, exist_ok = True)
+        #shutil.move(os.getcwd() + '\ARL.py', os.getcwd() + '/' + dirname)
+        
+        # update
+        dload.git_clone('https://github.com/SoongFish/GSND_MS.git')
+        shutil.move(os.getcwd() + '\GSND_MS\GSND_MS-master\ARL.py', os.getcwd())
+        update_flag = 1
+        
+        if update_flag == 0: # return -> 1 : success, 0 : fail
+            shutil.move(os.getcwd() + 'bak_' + version + '/ARL.py', os.getcwd())
+            shutil.rmtree('GSND_MS')
+            Log(desc = '업데이트 실패(prever:' + version + ')')
+            messagebox.showerrer('오류', '업데이트를 실패했습니다.\n프로그램을 다시 실행해주세요.')
+        else:
+            shutil.rmtree('GSND_MS')
+            Log(desc = '업데이트 완료(prever:' + version + ')')
+            messagebox.showinfo('알림', '업데이트가 완료되었습니다.\n프로그램을 다시 실행해주세요.')
+            mainwindow.quit()
+    except Exception as e:
+        messagebox.showerror('오류', str(e) + '\n업데이트 중 오류가 발생했습니다.')
     
 def Log(desc = ''):
     try:
